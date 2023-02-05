@@ -3,8 +3,10 @@ using Discord.Commands.Builders;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System.Linq;
 using System;
 using System.Collections.Generic;
+
 internal class Program
 {
     class MainClass
@@ -21,8 +23,8 @@ internal class Program
 
         Random random = new Random();
 
-        List<SocketVoiceChannel> guildVoiceChannels = new List<SocketVoiceChannel> { };
-        List<SocketGuildUser> guildUsers = new List<SocketGuildUser> { };
+        public List<SocketVoiceChannel> guildVoiceChannels = new List<SocketVoiceChannel> { };
+        public List<SocketGuildUser> guildUsers = new List<SocketGuildUser> { };
 
         public async Task MainAsync()
         {
@@ -64,10 +66,6 @@ internal class Program
 
                 SlashCommandBuilder guildCommand = new SlashCommandBuilder();
 
-
-                guildCommand.WithName("remove");
-                guildCommand.WithDescription("Command to Remove Users from Voice Channels");
-
                 guildCommand.WithName("move");
                 guildCommand.WithDescription("Command to Move Users to different Voice Channels");
 
@@ -75,7 +73,7 @@ internal class Program
                 {
                     await _guild.CreateApplicationCommandAsync(guildCommand.Build());
                 }
-                catch (ApplicationCommandException exception)
+                catch (HttpException exception)
                 {
                     var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
                     Console.WriteLine(json);
@@ -90,9 +88,16 @@ internal class Program
             return Task.CompletedTask;
         }
 
-        private Task SlashCommandHandler(SocketSlashCommand command)
+        private async Task SlashCommandHandler(SocketSlashCommand command)
         {
-            return Task.CompletedTask;
+            switch(command.Data.Name)
+            {
+                case "move":
+                    await HandleMoveCommand(command);
+                    break;
+            }
+
+            return;
         }
 
         private Task MessageHandler(SocketMessage message)
@@ -124,11 +129,32 @@ internal class Program
             return Task.CompletedTask;
         }
 
+        private async Task HandleMoveCommand(SocketSlashCommand command)
+        {
+            Console.WriteLine("Noving users...");
+            for(int i = 0; i < guildUsers.Count(); i++)
+            {
+                Move(guildUsers.ElementAt<SocketGuildUser>(i));
+            }
+            await command.RespondAsync("Moving users...");
+            
+        }
+
         //Function to move users between voice channels
         private async void Move(SocketGuildUser user)
         {
             int randomChannel = random.Next(guildVoiceChannels.Count());
-            await user.ModifyAsync(x => { x.ChannelId = guildVoiceChannels[randomChannel].Id; });
+
+            if (user.VoiceChannel == null)
+            {
+                Console.WriteLine(user.Username + " was not in a Voice Channel");
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Moving " + user.Username);
+                await user.ModifyAsync(x => { x.ChannelId = guildVoiceChannels[randomChannel].Id; });
+            }
         }
 
 
