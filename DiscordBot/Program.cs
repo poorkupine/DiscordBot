@@ -19,8 +19,6 @@ internal class Program
         private DiscordSocketClient? _client;
         private SocketGuild? _guild;
 
-        int totalMembers, totalVoiceChannels;
-
         Random random = new Random();
 
         public List<SocketVoiceChannel> guildVoiceChannels = new List<SocketVoiceChannel> { };
@@ -44,7 +42,7 @@ internal class Program
             _client.Log += Log;
 
             //Fill in your apps token from the discord dev portal
-            var token = "test";
+            string token = "test";
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
