@@ -43,7 +43,8 @@ internal class Program
             _client.Ready += OnReady;
             _client.Log += Log;
 
-            var token = "OTU4NTUyNTg4MjQzMDU0NjI0.YkO_qg.38C1mS8iOdTj0vSYBMLmkOaMAeM";
+            //Fill in your apps token from the discord dev portal
+            var token = "test";
 
             await _client.LoginAsync(TokenType.Bot, token);
             await _client.StartAsync();
